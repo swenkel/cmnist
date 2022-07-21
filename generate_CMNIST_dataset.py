@@ -22,36 +22,25 @@
 ###############################################################################
 
 
-
-###############################################################################
-#                            External libraries                               #
-#                                                                             #
-#                                                                             #
-import time
+import gc
+import gzip
+import hashlib
+import itertools
 import os
-import sys
 import random
+import shutil
+import sys
+import time
+import zipfile
+
+from mnist import MNIST # pip: python-mnist
 import numpy as np
 import pandas as pd
 from PIL import Image
-from mnist import MNIST
 import wget
-import zipfile
-import hashlib
-import gc
-import gzip
-import shutil
-import itertools
-#                                                                             #
-#                                                                             #
-###############################################################################
 
 
 
-###############################################################################
-#                            	 Functions                                    #
-#                                                                             #
-#                                                                             #
 def seed_everything(seed):
     """
     Getting rid of all the randomness in the world :(
@@ -101,7 +90,7 @@ def downloadDataset(datasetName):
         fileName = url.split('/')[-1]
         checksumReference = CONSTANTS["MD5-CHECKSUMS"][datasetName][partition]
         if os.path.isfile(origPathDS+fileName):
-            print(origPathDS+fileName,"exists already.")
+            print(origPathDS+fileName,"downloaded already.")
             if checkCHECKSUM(origPathDS+fileName) != checksumReference:
                 os.remove(origPathDS+fileName)
                 print("Incorrect checksum. File broken. Re-download initiated.")
@@ -111,6 +100,7 @@ def downloadDataset(datasetName):
             print("Downloading",url)
             print()
             wget.download(url, out=origPathDS+fileName)
+            print()
             if checkCHECKSUM(origPathDS+fileName) != checksumReference:
                 os.remove(origPathDS+fileName)
                 raise ValueError("Incorrect checksum of "+origPathDS+fileName+ \
@@ -169,6 +159,7 @@ def generateBaseDatasets(datasetName,dumpedPath,dumpedPathDS,origPath,origPathDS
                     os.makedirs(dumpedPathDS+"/"+str(i)+"/")
             result = saveImg(X,y,dumpedPathDS,datasetName,setType)
         return pd.DataFrame.from_dict(result, orient="index")
+
 
     def loadDataset(datasetName,origPathDS):
         """
@@ -302,6 +293,7 @@ def createSubsetCombinations():
                 combinations.append(combination)
     return combinations
 
+
 def getDatasetCombinationName(datasetCombination):
     """
     CONSTANTS["Reduced-training-set-sizes"]
@@ -310,6 +302,7 @@ def getDatasetCombinationName(datasetCombination):
     for dataset in datasetCombination:
         abbreviation+=CONSTANTS["Datasets"][dataset]
     return abbreviation
+
 
 def generateReducedCMNIST(inputFile,dumpedPath):
     """
@@ -387,16 +380,10 @@ def generateCMNIST():
             print("Generating reduced",dataset.split("_")[0])
             generateReducedCMNIST(dataset,dumpedPath)
             print("*" * 40)
-#                                                                             #
-#                                                                             #
-###############################################################################
 
 
 
-###############################################################################
-#                             Constants                                       #
-#                                                                             #
-#                                                                             #
+
 CONSTANTS = {}
 CONSTANTS["SEED"] = 1
 CONSTANTS["PATH"] = "./CMNIST/"
@@ -552,16 +539,8 @@ CONSTANTS["CMNIST-X"]["CMNIST-X-24"]["Kannada"] = [1,2,4,8]
 CONSTANTS["CMNIST-X"]["CMNIST-X-24"]["KMNIST"] = [5,7,8,9]
 CONSTANTS["CMNIST-X"]["CMNIST-X-24"]["notMNIST"] = [1,3,4,9]
 CONSTANTS["Reduced-training-set-sizes"] = [1,5,10,50,100]
-#                                                                             #
-#                                                                             #
-###############################################################################
 
 
-
-###############################################################################
-#                            Main function                                    #
-#                                                                             #
-#                                                                             #
 def main():
     startTime = time.time()
     seed_everything(CONSTANTS["SEED"])
@@ -572,10 +551,6 @@ def main():
     print()
     print("CMNIST generated in {:.2f} minutes.".format((time.time()-startTime)/60))
     print("=" * 80)
-#                                                                             #
-#                                                                             #
-###############################################################################
-
 
 
 if __name__ == "__main__":
